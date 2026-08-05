@@ -1,0 +1,25 @@
+# Node.js
+node_modules/
+dist/
+coverage/
+
+# Environment variables
+.env
+.env.*
+
+# Logs
+*.log
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-data/
+
+# Kubernetes secrets
+*.secret.yaml
