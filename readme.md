@@ -353,9 +353,11 @@ Response:
 
 ## Phase 2 - Order Processing
 
-⬜ Order Service
-⬜ Order database
-⬜ Order APIs
+✅ Order Service
+✅ Separate order database
+✅ Create order API
+✅ Order history API
+✅ Order status update API
 
 ---
 
