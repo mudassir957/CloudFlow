@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { RabbitMQService } from "../rabbitmq/rabbitmq.service";
 
 import { Order } from './entities/order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -11,11 +12,22 @@ export class OrdersService {
   constructor(
     @InjectRepository(Order)
     private ordersRepository: Repository<Order>,
-  ) {}
+    private rabbitMQService: RabbitMQService,
+  ) { }
 
-  create(createOrderDto: CreateOrderDto) {
+  async create(createOrderDto: CreateOrderDto) {
     const order = this.ordersRepository.create(createOrderDto);
-    return this.ordersRepository.save(order);
+
+    const saved = await this.ordersRepository.save(order);
+
+    await this.rabbitMQService.publishOrderCreated({
+      type: 'ORDER_CREATED',
+      orderId: saved.id,
+      userId: saved.userId,
+      productName: saved.productName,
+    });
+
+    return saved;
   }
 
   async findOne(id: number) {
