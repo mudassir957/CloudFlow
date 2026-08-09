@@ -1,28 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { ConfigService } from '@nestjs/config/dist/config.service';
 
 @Injectable()
 export class GatewayService {
-  constructor(private readonly http: HttpService) {}
+  constructor(private readonly http: HttpService, private readonly configService: ConfigService) {}
 
   async registerUser(data: any) {
     const response = await firstValueFrom(
-      this.http.post('http://localhost:3000/users/register', data),
+      this.http.post(this.configService.get<string>('USER_SERVICE_URL') + '/users/register', data),
     );
     return response.data;
   }
 
   async login(data: any) {
     const response = await firstValueFrom(
-      this.http.post('http://localhost:3000/auth/login', data),
+      this.http.post(this.configService.get<string>('USER_SERVICE_URL') + '/auth/login', data),
     );
     return response.data;
   }
 
   async getProfile(token: string) {
     const response = await firstValueFrom(
-      this.http.get('http://localhost:3000/users/profile', {
+      this.http.get(this.configService.get<string>('USER_SERVICE_URL') + '/users/profile', {
         headers: {
           Authorization: token,
         },
@@ -33,14 +34,14 @@ export class GatewayService {
 
   async createOrder(data: any) {
     const response = await firstValueFrom(
-      this.http.post('http://localhost:3001/orders', data),
+      this.http.post(this.configService.get<string>('ORDER_SERVICE_URL') + '/orders', data),
     );
     return response.data;
   }
 
   async getOrder(id: string) {
     const response = await firstValueFrom(
-      this.http.get(`http://localhost:3001/orders/${id}`),
+      this.http.get(this.configService.get<string>('ORDER_SERVICE_URL') + `/orders/${id}`),
     );
     return response.data;
   }
