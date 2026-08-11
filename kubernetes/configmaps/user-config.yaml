@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-config
+  namespace: cloudflow
+data:
+  DB_HOST: postgres-users
+  DB_PORT: "5432"
+  DB_NAME: cloudflow_users
