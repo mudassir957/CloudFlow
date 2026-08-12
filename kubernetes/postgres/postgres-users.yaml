@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-users
+  namespace: cloudflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-users
+  template:
+    metadata:
+      labels:
+        app: postgres-users
+    spec:
+      containers:
+        - name: postgres-users
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: cloudflow_users
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: database-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-secret
+                  key: POSTGRES_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-users
+  namespace: cloudflow
+spec:
+  selector:
+    app: postgres-users
+  ports:
+    - port: 5432
+      targetPort: 5432
