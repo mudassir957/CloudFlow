@@ -494,67 +494,107 @@ GET http://localhost:3002/orders/1
 
 # 📌 Development Roadmap
 
+# 📌 Development Roadmap
+
 ## Phase 1 - Backend Foundation
 
-✅ Repository setup
-✅ User Service
-✅ PostgreSQL integration
-✅ JWT Authentication
+- ✅ Repository setup
+- ✅ User Service
+- ✅ PostgreSQL integration
+- ✅ JWT Authentication
 
 ---
 
 ## Phase 2 - Order Processing
 
-✅ Order Service
-✅ Separate order database
-✅ Create order API
-✅ Order history API
-✅ Order status update API
+- ✅ Order Service
+- ✅ Separate order database
+- ✅ Create order API
+- ✅ Order history API
+- ✅ Order status update API
 
 ---
 
 ## Phase 3 - Distributed Architecture
 
-✅ API Gateway
-✅ RabbitMQ messaging
-⬜ Notification Service
-⬜ Redis caching
+- ✅ API Gateway
+- ✅ RabbitMQ messaging
+- ✅ Notification Service
+- ✅ Redis caching
 
 ---
 
-## Phase 4 - DevOps
+## Phase 4 - Kubernetes
 
-⬜ Docker containers
-⬜ Kubernetes deployment
-⬜ Terraform infrastructure
-⬜ Azure deployment
+- ✅ Dockerized microservices
+- ✅ Kubernetes Deployments
+- ✅ Kubernetes Services
+- ✅ ConfigMaps
+- ✅ Secrets
+- ⬜ Ingress
+- ⬜ HPA
+- ⬜ Persistent storage
 
 ---
 
-## Phase 5 - Production Readiness
+## Phase 5 - Cloud Infrastructure
 
-⬜ CI/CD pipeline
-⬜ Monitoring dashboards
-⬜ Logging
-⬜ Security scanning
+- ⬜ Terraform
+- ⬜ Azure Container Registry
+- ⬜ Azure Kubernetes Service (AKS)
+- ⬜ Azure networking
+
+---
+
+## Phase 6 - CI/CD & Observability
+
+- ⬜ GitHub Actions
+- ⬜ Automated Docker builds
+- ⬜ Trivy security scanning
+- ⬜ Prometheus
+- ⬜ Grafana
+- ⬜ Centralized logging
 
 ---
 
 # 📊 Project Status
 
+# 📊 Project Status
+
 Current Progress:
 
-```text
-Day 3 Completed ✅
+Day 6 - Kubernetes Deployment ✅
 
-User Service: Completed
-Order Service: Completed
-API Gateway: Completed
-RabbitMQ Publishing: Completed
-Notification Service: Pending
-Redis: Pending
-Infrastructure: Pending
-```
+User Service: Completed ✅
+Order Service: Completed ✅
+API Gateway: Completed ✅
+Notification Service: Completed ✅
+PostgreSQL: Completed ✅
+RabbitMQ: Completed ✅
+Redis: Completed ✅
+
+Kubernetes:
+- Deployments ✅
+- Services ✅
+- ConfigMaps ✅
+- Secrets ✅
+- Application deployment ✅
+- End-to-end Kubernetes testing ✅
+
+Terraform:
+- AKS cluster ⬜
+- Azure Container Registry ⬜
+- Networking ⬜
+- Infrastructure provisioning ⬜
+
+CI/CD:
+- GitHub Actions ⬜
+
+Monitoring:
+- Prometheus ⬜
+- Grafana ⬜
+
+
 
 ---
 
