@@ -23,3 +23,7 @@ docker-data/
 
 # Kubernetes secrets
 *.secret.yaml
+
+.terraform/
+*.tfstate
+*.tfstate.backup
