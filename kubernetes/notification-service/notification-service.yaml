@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - name: notification-service
-          image: cloudflow-notification-service:latest
-          imagePullPolicy: IfNotPresent
+          image: mudassircloudflow123.azurecr.io/cloudflow-notification-service:v1
+          imagePullPolicy: Always
           envFrom:
             - configMapRef:
                 name: notification-config

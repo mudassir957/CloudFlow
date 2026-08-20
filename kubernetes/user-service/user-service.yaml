@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: cloudflow-user-service:latest
-          imagePullPolicy: IfNotPresent
+          image: mudassircloudflow123.azurecr.io/cloudflow-user-service:v1
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
           envFrom:

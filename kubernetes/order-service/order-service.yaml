@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - name: order-service
-          image: cloudflow-order-service:latest
-          imagePullPolicy: IfNotPresent
+          image: mudassircloudflow123.azurecr.io/cloudflow-order-service:v1
+          imagePullPolicy: Always
           ports:
             - containerPort: 3001
           envFrom:

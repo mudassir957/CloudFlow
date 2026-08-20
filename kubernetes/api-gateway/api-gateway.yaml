@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: cloudflow-api-gateway:v2
-          imagePullPolicy: IfNotPresent
+          image: mudassircloudflow123.azurecr.io/cloudflow-api-gateway:v1
+          imagePullPolicy: Always
           ports:
             - containerPort: 3002
           envFrom:
