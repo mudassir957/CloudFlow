@@ -1,0 +1,195 @@
+name: CloudFlow CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  REGISTRY: mudassircloudflow123.azurecr.io
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  build-test-scan:
+    name: Build, Test & Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # User Service
+      - name: Install User Service dependencies
+        working-directory: services/user-service
+        run: npm ci
+
+      - name: Build User Service
+        working-directory: services/user-service
+        run: npm run build
+
+      # Order Service
+      - name: Install Order Service dependencies
+        working-directory: services/order-service
+        run: npm ci
+
+      - name: Build Order Service
+        working-directory: services/order-service
+        run: npm run build
+
+      # API Gateway
+      - name: Install API Gateway dependencies
+        working-directory: services/api-gateway
+        run: npm ci
+
+      - name: Build API Gateway
+        working-directory: services/api-gateway
+        run: npm run build
+
+      # Notification Service
+      - name: Install Notification Service dependencies
+        working-directory: services/notification-service
+        run: npm ci
+
+      - name: Build Notification Service
+        working-directory: services/notification-service
+        run: npm run build
+
+      # Azure authentication
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to Azure Container Registry
+        run: az acr login --name mudassircloudflow123
+
+            # Build Docker images
+      - name: Build API Gateway image
+        run: |
+          docker build \
+            -f docker/api-gateway.Dockerfile \
+            -t $REGISTRY/cloudflow-api-gateway:$IMAGE_TAG \
+            services/api-gateway
+
+      - name: Build User Service image
+        run: |
+          docker build \
+            -f docker/user-service.Dockerfile \
+            -t $REGISTRY/cloudflow-user-service:$IMAGE_TAG \
+            services/user-service
+
+      - name: Build Order Service image
+        run: |
+          docker build \
+            -f docker/order-service.Dockerfile \
+            -t $REGISTRY/cloudflow-order-service:$IMAGE_TAG \
+            services/order-service
+
+      - name: Build Notification Service image
+        run: |
+          docker build \
+            -f docker/notification-service.Dockerfile \
+            -t $REGISTRY/cloudflow-notification-service:$IMAGE_TAG \
+            services/notification-service
+
+      # Security scanning
+      - name: Scan API Gateway image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/cloudflow-api-gateway:${{ env.IMAGE_TAG }}
+          severity: CRITICAL,HIGH
+          exit-code: 1
+
+      - name: Scan User Service image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/cloudflow-user-service:${{ env.IMAGE_TAG }}
+          severity: CRITICAL,HIGH
+          exit-code: 1
+
+      - name: Scan Order Service image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/cloudflow-order-service:${{ env.IMAGE_TAG }}
+          severity: CRITICAL,HIGH
+          exit-code: 1
+
+      - name: Scan Notification Service image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/cloudflow-notification-service:${{ env.IMAGE_TAG }}
+          severity: CRITICAL,HIGH
+          exit-code: 1
+
+      # Push images
+      - name: Push API Gateway image
+        run: docker push $REGISTRY/cloudflow-api-gateway:$IMAGE_TAG
+
+      - name: Push User Service image
+        run: docker push $REGISTRY/cloudflow-user-service:$IMAGE_TAG
+
+      - name: Push Order Service image
+        run: docker push $REGISTRY/cloudflow-order-service:$IMAGE_TAG
+
+      - name: Push Notification Service image
+        run: docker push $REGISTRY/cloudflow-notification-service:$IMAGE_TAG
+
+  deploy:
+    name: Deploy to AKS
+    needs: build-test-scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Set AKS context
+        uses: azure/aks-set-context@v4
+        with:
+          resource-group: cloudflow-rg
+          cluster-name: cloudflow-aks
+
+      - name: Deploy application to AKS
+        uses: Azure/k8s-deploy@v5
+        with:
+          namespace: cloudflow
+          manifests: |
+            kubernetes/api-gateway/api-gateway.yaml
+            kubernetes/user-service/user-service.yaml
+            kubernetes/order-service/order-service.yaml
+            kubernetes/notification-service/notification-service.yaml
+          images: |
+            ${{ env.REGISTRY }}/cloudflow-api-gateway:${{ env.IMAGE_TAG }}
+            ${{ env.REGISTRY }}/cloudflow-user-service:${{ env.IMAGE_TAG }}
+            ${{ env.REGISTRY }}/cloudflow-order-service:${{ env.IMAGE_TAG }}
+            ${{ env.REGISTRY }}/cloudflow-notification-service:${{ env.IMAGE_TAG }}
+
+      - name: Verify deployments
+        run: |
+          kubectl rollout status deployment/api-gateway -n cloudflow --timeout=180s
+          kubectl rollout status deployment/user-service -n cloudflow --timeout=180s
+          kubectl rollout status deployment/order-service -n cloudflow --timeout=180s
+          kubectl rollout status deployment/notification-service -n cloudflow --timeout=180s
+
+      - name: Show cluster status
+        run: |
+          kubectl get pods -n cloudflow
+          kubectl get svc -n cloudflow

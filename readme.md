@@ -1,10 +1,12 @@
 # CloudFlow ☁️
 
-> **Current Stage:** Event-driven microservices architecture with API Gateway, JWT authentication, independent PostgreSQL databases, and RabbitMQ event publishing.
+> **Current Stage:** Cloud-native event-driven microservices platform deployed on Azure Kubernetes Service (AKS), with API Gateway, JWT authentication, independent PostgreSQL databases, RabbitMQ messaging, Redis caching, Docker, Kubernetes, Terraform, and autoscaling.
 
 ## Cloud-Native Distributed Order Processing System
 
-CloudFlow is a cloud-native distributed order processing platform built using a microservices architecture. The system demonstrates scalable backend development, asynchronous communication, containerization, cloud deployment, infrastructure as code, CI/CD automation, and monitoring.
+CloudFlow is a cloud-native distributed order processing platform built using a microservices architecture.
+
+The project demonstrates scalable backend development, asynchronous communication, containerization, Kubernetes orchestration, infrastructure as code, Azure cloud deployment, and horizontal autoscaling.
 
 ---
 
@@ -12,130 +14,77 @@ CloudFlow is a cloud-native distributed order processing platform built using a 
 
 CloudFlow processes user orders through independent microservices.
 
-The platform is designed with:
-
-* Microservices architecture
-* Independent databases
-* Asynchronous messaging
-* Distributed caching
-* Containerized deployment
-* Kubernetes orchestration
-* Cloud infrastructure automation
-
----
-
-# 🏗️ Architecture
-
-Current architecture:
-
-```text
-                 Client
-                   |
-              API Gateway
-                   |
-        -----------------------
-        |                     |
-   User Service         Order Service
-        |                     |
-   PostgreSQL           PostgreSQL
-                              |
-                           RabbitMQ
-```
-
-Future architecture:
-
 ```text
                          Client
                            |
-                    API Gateway
+                      API Gateway
                            |
-        ---------------------------------
-        |                               |
-   User Service                  Order Service
-        |                               |
-   PostgreSQL                    PostgreSQL
-                                        |
-                                   RabbitMQ
-                                        |
+             ┌─────────────┴─────────────┐
+             ↓                           ↓
+       User Service                Order Service
+             ↓                           ↓
+      PostgreSQL DB              PostgreSQL DB
+                                         |
+                                      RabbitMQ
+                                         |
+                                         ↓
                               Notification Service
-                                        |
-                                      Redis
+
+                           Redis → Caching
 ```
 
 ---
 
 # 🛠️ Technology Stack
 
-## Backend
+**Backend**
 
 * Node.js
 * NestJS
 * TypeScript
 * REST APIs
 
-## Database
+**Database**
 
 * PostgreSQL
 * TypeORM
 
-## Authentication
+**Authentication**
 
 * JWT
 * Passport.js
 * bcrypt
 
-## Messaging
+**Messaging & Caching**
 
 * RabbitMQ
+* Redis
 
-## Caching
-
-* Redis (planned)
-
-## Containerization
+**Containerization**
 
 * Docker
 * Docker Compose
 
-## Orchestration
+**Orchestration**
 
 * Kubernetes
+* HPA
+* Ingress
 
-## Infrastructure
+**Cloud & Infrastructure**
 
+* Microsoft Azure
+* Azure Kubernetes Service (AKS)
+* Azure Container Registry (ACR)
 * Terraform
-* Azure
+* Azure Managed Storage
 
-## CI/CD
+**CI/CD & Monitoring**
 
 * GitHub Actions
-* Docker
 * Trivy
-
-## Monitoring
-
 * Prometheus
 * Grafana
-
----
-
-# 📂 Project Structure
-
-```text
-cloudflow/
-├── services/
-│   ├── api-gateway/
-│   ├── user-service/
-│   ├── order-service/
-│   └── notification-service/
-├── database/
-├── docker/
-├── kubernetes/
-├── terraform/
-├── monitoring/
-├── docker-compose.yml
-└── README.md
-```
 
 ---
 
@@ -143,32 +92,33 @@ cloudflow/
 
 ## API Gateway
 
-Status: Completed ✅
+**Status: Completed ✅**
 
-Responsibilities:
+Handles client requests and communicates with backend services.
 
-* Request routing
-* Authentication forwarding
-* Request validation
-* Service communication
-
-Implemented Routes:
+Implemented routes include:
 
 ```http
-POST   /users/register
-POST   /auth/login
-GET    /users/profile
-POST   /orders
-GET    /orders/:id
+POST  /users/register
+POST  /auth/login
+GET   /users/profile
+
+POST  /orders
+GET   /orders/:id
+GET   /orders/user/:userId
 ```
 
-Runs on: **http://localhost:3002**
+Local port:
+
+```text
+http://localhost:3002
+```
 
 ---
 
 ## User Service
 
-Status: Completed ✅
+**Status: Completed ✅**
 
 Responsibilities:
 
@@ -180,37 +130,34 @@ Responsibilities:
 Database:
 
 ```text
-PostgreSQL (cloudflow_users)
+PostgreSQL
+cloudflow_users
 ```
 
-Implemented APIs:
+Local port:
 
-```http
-POST   /users/register
-POST   /auth/login
-GET    /users/profile
+```text
+http://localhost:3000
 ```
-
-Runs on: **http://localhost:3000**
 
 ---
 
 ## Order Service
 
-Status: Completed ✅
+**Status: Completed ✅**
 
 Responsibilities:
 
 * Create orders
 * Update order status
-* Retrieve order history
-* Manage order lifecycle
+* Retrieve user orders
 * Publish order events
 
 Database:
 
 ```text
-PostgreSQL (cloudflow_orders)
+PostgreSQL
+cloudflow_orders
 ```
 
 Implemented APIs:
@@ -222,257 +169,122 @@ GET    /orders/user/:userId
 PATCH  /orders/:id/status
 ```
 
-Runs on: **http://localhost:3001**
+Local port:
+
+```text
+http://localhost:3001
+```
 
 ---
 
 ## Notification Service
 
-Status: Planned ⬜
+**Status: Completed ✅**
 
-Responsibilities:
-
-* Consume order events
-* Send notifications asynchronously
-* Integrate with Redis cache
+Consumes order events through RabbitMQ and processes notifications asynchronously.
 
 ---
 
 # 📡 Event-Driven Architecture
 
-When an order is created, the Order Service publishes an event to RabbitMQ.
+When an order is created:
 
 ```text
 Client
-   |
+   ↓
 API Gateway
-   |
+   ↓
 Order Service
-   |
-ORDER_CREATED Event
-   |
-RabbitMQ Queue (order-events)
+   ↓
+ORDER_CREATED
+   ↓
+RabbitMQ
+   ↓
+Notification Service
 ```
 
-Example event:
-
-```json
-{
-  "type": "ORDER_CREATED",
-  "orderId": 1,
-  "userId": 1,
-  "productName": "MacBook Pro"
-}
-```
+This allows order processing and notification handling to operate independently.
 
 ---
 
-# 🔐 Authentication Flow
+# 🔐 Authentication
+
+CloudFlow uses JWT-based authentication.
 
 ```text
 User
-  |
-Login Request
-  |
+ ↓
+Login
+ ↓
 API Gateway
-  |
+ ↓
 User Service
-  |
-Validate Credentials
-  |
-Generate JWT Token
-  |
-Client Uses Token
-  |
+ ↓
+JWT Token
+ ↓
 Protected APIs
 ```
 
 ---
 
-# 🗄️ Database Design
+# 🐳 Docker
 
-## Users Table
-
-```text
-id
-name
-email
-password_hash
-created_at
-updated_at
-```
-
-## Orders Table
-
-```text
-id
-user_id
-product_name
-quantity
-status
-created_at
-updated_at
-```
-
-Order status values:
-
-* PENDING
-* PROCESSING
-* COMPLETED
-* CANCELLED
-
----
-
-# ⚙️ Local Development Setup
-
-## Clone Repository
-
-```bash
-git clone <repository-url>
-cd cloudflow
-```
-
----
-
-## Start Infrastructure
+All application services are containerized and can be run locally using Docker Compose.
 
 ```bash
 docker compose up -d
 ```
 
-This starts:
+---
 
-* postgres-users
-* postgres-orders
-* pgadmin
-* rabbitmq
+# ☸️ Kubernetes & Azure
+
+CloudFlow is deployed to **Azure Kubernetes Service (AKS)**.
+
+Implemented:
+
+* Kubernetes Deployments ✅
+* Kubernetes Services ✅
+* ConfigMaps ✅
+* Secrets ✅
+* Ingress ✅
+* Horizontal Pod Autoscaling ✅
+* Persistent storage ✅
+* Azure Container Registry ✅
+* Terraform infrastructure ✅
+
+Application services are deployed as Kubernetes workloads with CPU-based autoscaling.
 
 ---
 
-## Run User Service
+# ☁️ Infrastructure as Code
 
-```bash
-cd services/user-service
-npm install
-npm run start:dev
-```
+Azure infrastructure is provisioned using Terraform.
 
-Runs on: **http://localhost:3000**
+Current infrastructure includes:
 
----
-
-## Run Order Service
-
-```bash
-cd services/order-service
-npm install
-npm run start:dev
-```
-
-Runs on: **http://localhost:3001**
-
----
-
-## Run API Gateway
-
-```bash
-cd services/api-gateway
-npm install
-npm run start:dev
-```
-
-Runs on: **http://localhost:3002**
-
----
-
-# 🐘 pgAdmin
-
-Open:
-
-```text
-http://localhost:5050
-```
-
-Credentials:
-
-```text
-Email: admin@cloudflow.com
-Password: admin
-```
-
----
-
-# 🐰 RabbitMQ Management UI
-
-Open:
-
-```text
-http://localhost:15672
-```
-
-Credentials:
-
-```text
-Username: guest
-Password: guest
-```
+* Azure Resource Group
+* Azure Kubernetes Service
+* Azure Container Registry
+* Azure networking
+* Kubernetes node infrastructure
+* Managed persistent storage
 
 ---
 
 # 🧪 Testing Through API Gateway
 
-All client requests should go through the API Gateway (`localhost:3002`).
+Client requests can be tested through:
 
-## Register User
+```text
+http://localhost:3002
+```
+
+Example order request:
 
 ```http
-POST http://localhost:3002/users/register
+POST /orders
 ```
-
-Example:
-
-```json
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "password123"
-}
-```
-
----
-
-## Login
-
-```http
-POST http://localhost:3002/auth/login
-```
-
-Response:
-
-```json
-{
-  "access_token": "JWT_TOKEN"
-}
-```
-
----
-
-## Get Profile
-
-```http
-GET http://localhost:3002/users/profile
-Authorization: Bearer <token>
-```
-
----
-
-## Create Order
-
-```http
-POST http://localhost:3002/orders
-```
-
-Example:
 
 ```json
 {
@@ -484,117 +296,41 @@ Example:
 
 ---
 
-## Get Order
-
-```http
-GET http://localhost:3002/orders/1
-```
-
----
-
-# 📌 Development Roadmap
-
-# 📌 Development Roadmap
-
-## Phase 1 - Backend Foundation
-
-- ✅ Repository setup
-- ✅ User Service
-- ✅ PostgreSQL integration
-- ✅ JWT Authentication
-
----
-
-## Phase 2 - Order Processing
-
-- ✅ Order Service
-- ✅ Separate order database
-- ✅ Create order API
-- ✅ Order history API
-- ✅ Order status update API
-
----
-
-## Phase 3 - Distributed Architecture
-
-- ✅ API Gateway
-- ✅ RabbitMQ messaging
-- ✅ Notification Service
-- ✅ Redis caching
-
----
-
-## Phase 4 - Kubernetes
-
-- ✅ Dockerized microservices
-- ✅ Kubernetes Deployments
-- ✅ Kubernetes Services
-- ✅ ConfigMaps
-- ✅ Secrets
-- ⬜ Ingress
-- ⬜ HPA
-- ⬜ Persistent storage
-
----
-
-## Phase 5 - Cloud Infrastructure
-
-- ⬜ Terraform
-- ⬜ Azure Container Registry
-- ⬜ Azure Kubernetes Service (AKS)
-- ⬜ Azure networking
-
----
-
-## Phase 6 - CI/CD & Observability
-
-- ⬜ GitHub Actions
-- ⬜ Automated Docker builds
-- ⬜ Trivy security scanning
-- ⬜ Prometheus
-- ⬜ Grafana
-- ⬜ Centralized logging
-
----
-
 # 📊 Project Status
 
-# 📊 Project Status
+| Component                | Status |
+| ------------------------ | ------ |
+| User Service             | ✅      |
+| Order Service            | ✅      |
+| API Gateway              | ✅      |
+| Notification Service     | ✅      |
+| PostgreSQL               | ✅      |
+| RabbitMQ                 | ✅      |
+| Redis                    | ✅      |
+| Docker                   | ✅      |
+| Kubernetes               | ✅      |
+| Ingress                  | ✅      |
+| HPA                      | ✅      |
+| Persistent Storage       | ✅      |
+| Terraform                | ✅      |
+| Azure AKS                | ✅      |
+| Azure Container Registry | ✅      |
+| CI/CD                    | 🚧     |
+| Prometheus               | 🚧     |
+| Grafana                  | 🚧     |
 
-Current Progress:
+---
 
-Day 6 - Kubernetes Deployment ✅
+# 🗺️ Roadmap
 
-User Service: Completed ✅
-Order Service: Completed ✅
-API Gateway: Completed ✅
-Notification Service: Completed ✅
-PostgreSQL: Completed ✅
-RabbitMQ: Completed ✅
-Redis: Completed ✅
+### Next Steps
 
-Kubernetes:
-- Deployments ✅
-- Services ✅
-- ConfigMaps ✅
-- Secrets ✅
-- Application deployment ✅
-- End-to-end Kubernetes testing ✅
-
-Terraform:
-- AKS cluster ⬜
-- Azure Container Registry ⬜
-- Networking ⬜
-- Infrastructure provisioning ⬜
-
-CI/CD:
-- GitHub Actions ⬜
-
-Monitoring:
-- Prometheus ⬜
-- Grafana ⬜
-
-
+* GitHub Actions CI/CD
+* Automated Docker builds
+* Trivy security scanning
+* Prometheus & Grafana monitoring
+* Production health checks
+* Further reliability and security improvements
 
 ---
 
@@ -602,4 +338,4 @@ Monitoring:
 
 **CloudFlow Project**
 
-Built as a cloud-native microservices engineering project using **NestJS, PostgreSQL, RabbitMQ, Docker, Kubernetes, Terraform, and Azure**.
+Built as a cloud-native microservices engineering project using **NestJS, PostgreSQL, RabbitMQ, Redis, Docker, Kubernetes, Terraform, and Azure**.
