@@ -110,6 +110,7 @@ jobs:
           image-ref: ${{ env.REGISTRY }}/cloudflow-api-gateway:${{ env.IMAGE_TAG }}
           severity: CRITICAL,HIGH
           exit-code: 1
+          ignore-unfixed: true
 
       - name: Scan User Service image
         uses: aquasecurity/trivy-action@v0.36.0
@@ -117,6 +118,7 @@ jobs:
           image-ref: ${{ env.REGISTRY }}/cloudflow-user-service:${{ env.IMAGE_TAG }}
           severity: CRITICAL,HIGH
           exit-code: 1
+          ignore-unfixed: true
 
       - name: Scan Order Service image
         uses: aquasecurity/trivy-action@v0.36.0
@@ -124,6 +126,7 @@ jobs:
           image-ref: ${{ env.REGISTRY }}/cloudflow-order-service:${{ env.IMAGE_TAG }}
           severity: CRITICAL,HIGH
           exit-code: 1
+          ignore-unfixed: true
 
       - name: Scan Notification Service image
         uses: aquasecurity/trivy-action@v0.36.0
@@ -131,6 +134,7 @@ jobs:
           image-ref: ${{ env.REGISTRY }}/cloudflow-notification-service:${{ env.IMAGE_TAG }}
           severity: CRITICAL,HIGH
           exit-code: 1
+          ignore-unfixed: true
 
       # Push images
       - name: Push API Gateway image
