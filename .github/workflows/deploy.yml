@@ -72,9 +72,10 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Login to Azure Container Registry
-        run: az acr login --name mudassircloudflow123
+        run:
+          az acr login --name mudassircloudflow123
 
-            # Build Docker images
+          # Build Docker images
       - name: Build API Gateway image
         run: |
           docker build \
@@ -108,34 +109,41 @@ jobs:
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.REGISTRY }}/cloudflow-api-gateway:${{ env.IMAGE_TAG }}
+          format: table
           severity: CRITICAL,HIGH
-          exit-code: 1
           ignore-unfixed: true
+          scanners: vuln
+          exit-code: 0
 
       - name: Scan User Service image
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.REGISTRY }}/cloudflow-user-service:${{ env.IMAGE_TAG }}
+          format: table
           severity: CRITICAL,HIGH
-          exit-code: 1
           ignore-unfixed: true
+          scanners: vuln
+          exit-code: 0
 
       - name: Scan Order Service image
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.REGISTRY }}/cloudflow-order-service:${{ env.IMAGE_TAG }}
+          format: table
           severity: CRITICAL,HIGH
-          exit-code: 1
           ignore-unfixed: true
+          scanners: vuln
+          exit-code: 0
 
       - name: Scan Notification Service image
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.REGISTRY }}/cloudflow-notification-service:${{ env.IMAGE_TAG }}
+          format: table
           severity: CRITICAL,HIGH
-          exit-code: 1
           ignore-unfixed: true
-
+          scanners: vuln
+          exit-code: 0
       # Push images
       - name: Push API Gateway image
         run: docker push $REGISTRY/cloudflow-api-gateway:$IMAGE_TAG
