@@ -7,9 +7,20 @@ resource "azurerm_kubernetes_cluster" "cloudflow" {
 
   default_node_pool {
     name           = "system"
-    node_count     = 1
+    node_count     = 2
     vm_size        = "Standard_D2s_v7"
     vnet_subnet_id = azurerm_subnet.aks.id
+
+    upgrade_settings {
+      max_surge                     = "10%"
+      drain_timeout_in_minutes      = 0
+      node_soak_duration_in_minutes = 0
+    }
+  }
+
+  web_app_routing {
+    default_nginx_controller = "AnnotationControlled"
+    dns_zone_ids             = []
   }
 
   identity {
